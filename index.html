@@ -1,0 +1,350 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="author" content="Vinícius Campitelli">
+
+        <title>Segurança além do óbvio</title>
+
+        <link rel="stylesheet" href="reveal.js/css/reveal.css">
+        <link rel="stylesheet" href="reveal.js/css/theme/night.css">
+        <link rel="stylesheet" href="css/prism.css">
+        <link rel="stylesheet" href="css/app.css">
+
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = 'reveal.js/' + (window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css');
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h1>Segurança<br>além do óbvio<br>com PHP</h1>
+                </section>
+
+                <section>
+                    <h2>Quem sou eu?</h2>
+                    <ul>
+                        <li>Vinícius Campitelli &mdash; <a href="http://vcampitelli.github.io">vcampitelli.github.io</a></li>
+                        <li>Arquiteto na <a href="https://mt4.com.br" target="_blank">MT4 Tecnologia</a></li>
+                        <li>Sócio-fundador no <a href="https://curseduca.pro" target="_blank">Curseduca</a></li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Agenda</h2>
+                    <ul>
+                        <li>OWASP Top Ten</li>
+                        <li>Gerenciamento de sessão</li>
+                        <li>Validação de entradas</li>
+                        <li>Armazenamento e políticas de senhas</li>
+                        <li>Enumeração de usuários</li>
+                        <li>CSRF</li>
+                        <li>Runtime Application Self-Protection</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>OWASP Top Ten</h2>
+                        <p>Ver página no <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project" target="_blank">owasp.org</a></p>
+                    </section>
+                    <section>
+                        <h3>OWASP Top Ten</h3>
+                        <img src="img/owasp-1.png" alt="OWASP Top Ten - Parte 1/2">
+                    </section>
+                    <section>
+                        <h3>OWASP Top Ten</h3>
+                        <img src="img/owasp-2.png" alt="OWASP Top Ten - Parte 2/2">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Gerenciamento de sessão</h2>
+                    </section>
+                    <section>
+                        <h3>Codificação</h3>
+                    </section>
+                    <section>
+                        <p>Regerar código da sessão no login e logout da da aplicação</p>
+                        <pre><code class="language-php line-numbers">if ($user = $this->loginFrom($_POST)) {
+    session_start();
+    session_regenerate_id(true); // true para apagar a sessão antiga
+}</code></pre>
+                    </section>
+                    <section>
+                        <p>Por mais que IP e User-Agent possam ser forjados, é uma camada extra de proteção</p>
+                        <pre><code class="language-php line-numbers">protected function check() : bool {
+    if ((empty($_SESSION['ip']))
+        || (empty($_SESSION['ua']))
+        || ($_SESSION['ip'] !== $_SERVER['REMOTE_ADDR'])
+        || ($_SESSION['ua'] !== $_SERVER['HTTP_USER_AGENT'])) {
+        session_regenerate_id(true);
+		return false;
+    }
+
+    return true;
+}
+</code></pre>
+                    </section>
+                    <section>
+                        <h3>Configurações</h3>
+                    </section>
+                    <section>
+                        <p>Com <a href="https://letsencrypt.org/" target="_blank">Let's Encrypt</a>, podemos ter certificados SSL gratuitos!</p>
+                        <p>Para automatizar o processo, recomendo o <a href="https://github.com/Neilpang/acme.sh">acme.sh</a></p>
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.name="MYSESSNAME"
+session.use_only_cookies=On
+session.use_strict_mode=On
+session.cookie_httponly=On
+session.cookie_secure=On
+session.cookie_domain="example.com"
+session.cookie_samesite="Strict"
+session.use_trans_sid=On
+session.sid_length=48
+session.sid_bits_per_character=6</code></pre>
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.name="MYSESSNAME"</code></pre>
+                        session.name specifies the name of the session which is used as cookie name. It should only contain alphanumeric characters. Defaults to PHPSESSID. See also session_name().
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.use_only_cookies=On</code></pre>
+
+                        Although HTTP cookies suffer some problems, cookies remain the preferred way to manage session IDs. Only use cookies for session ID management when it is possible. Most applications should use a cookie for the session ID.
+
+                        If session.use_only_cookies=Off, the session module will use the session ID values set by GET/POST/URL provided the session ID cookie is uninitialized.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.use_strict_mode=On</code></pre>
+
+                        Although, enabling session.use_strict_mode is mandatory for secure sessions. It is disabled by default.
+
+                        This prevents the session module to use an uninitialized session ID. Put differently, the session module only accepts valid session IDs generated by the session module. It rejects any session ID supplied by users.
+
+                        Due to the cookie specification, attackers are capable to place non removable session ID cookies by locally setting a cookie database or JavaScript injections. session.use_strict_mode can prevent an attacker initialized session ID of being used.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.cookie_httponly=On</code></pre>
+
+                        Refuses access to the session cookie from JavaScript. This setting prevents cookies snatched by a JavaScript injection.
+
+                        It is possible to use a session ID as a CSRF token, but this is not recommended. For example, HTML sources may be saved and sent to other users. Developers should not write session IDs in web pages for better security. Almost all applications must use the httponly attribute for the session ID cookie.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.cookie_secure=On</code></pre>
+
+                        Allow access to the session ID cookie only when the protocol is HTTPS. If a website is only accessible via HTTPS, it should enable this setting.
+
+                        HSTS should be considered for websites accessible only via HTTPS.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.cookie_domain = "example.com"</code></pre>
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.cookie_samesite="Lax" or session.cookie_samesite="Strict"</code></pre>
+
+                        As of PHP 7.3 the "SameSite" attribute can be set for the session ID cookie. This attribute is a way to mitigate CSRF (Cross Site Request Forgery) attacks.
+
+                        The difference between Lax and Strict is the accessibility of the cookie in requests originating from another registrable domain employing the HTTP GET method. Cookies using Lax will be accessible in a GET request originated from another registrable domain, whereas cookies using Strict will not.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.use_trans_sid=On</code></pre>
+                        Use of a transparent session ID management is not prohibited. Developers may employ it when it is required. However, disabling transparent session ID management improves the general session ID security by eliminating the possibility of a session ID injection and/or leak.
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.sid_length="48"</code></pre>
+                        (PHP 7.1.0 >=) Longer session IDs results in stronger session IDs. Developers should consider a session ID length of 32 characters or more. At least 26 characters are required when session.sid_bits_per_character="5".
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.sid_bits_per_character="6"</code></pre>
+                        (PHP 7.1.0 >=) The more bits there are in a session ID character, the stronger the session ID generated by the session module is for an identical session ID length.
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Validação de entradas</h2>
+                    </section>
+                    <section>
+                        <strong>Nunca confie em entradas do usuário!</strong>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>
+                                Utilize uma biblioteca para filtrar as entradas
+                                <ul>
+                                    <li><a href="http://htmlpurifier.org/" target="_blank">HTML Purifier</a></li>
+                                    <li><a href="https://github.com/voku/anti-xss" target="_blank">voku/anti-xss</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                Mas <strong>sempre</strong> escape a saída
+                                <ul>
+                                    <li>Se usar uma ferramenta de <em>templating</em>, verifique sua própria função</li>
+                                    <li>Senão, use:
+                                        <pre><code class="language-php">htmlentities($str, ENT_QUOTES | ENT_HTML5, $encoding)</code></pre>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>Valide os dados de entrada de acordo com o que você espera para aquele campo (<em>data type</em>)</li>
+                            <li>Exemplo: um nome de uma pessoa pode ter apenas letras, espaços, números, hífen e apóstrofo <em>(não esqueça dos acentos!)</em></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>Crie uma camada em seu <em>framework</em> que irá validar todos os dados da requisição antes de chegar à camada de negócio</li>
+                            <li>Se um campo não possuir um <em>data type</em> estipulado, remova-o da requisição</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>
+                                Você pode optar por duas abordagens
+                                <ol>
+                                    <li>Sanitizar a entrada e seguir o processamento com o valor limpo; ou</li>
+                                    <li class="margintop">Parar o processamento com <code>HTTP 400 Bad Request</code> <em>(recomendado para aplicações críticas)</em></li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Referências</h3>
+                        <ul>
+                            <li><a href="https://phpsecurity.readthedocs.io/en/latest/Cross-Site-Scripting-(XSS).html" target="_blank">PHP Security: XSS</a></li>
+                            <li><a href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet" target="_blank">OWASP: XSS Filter Evasion Cheat Sheet</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Armazenamento e políticas de senhas</h2>
+                    </section>
+                    <section>
+                        <h3>Políticas</h3>
+                        <ul>
+                            <li>Não limite os caracteres permitidos</li>
+                            <li>Não coloque um tamanho máximo</li>
+                            <li>
+                                O tamanho mínimo varia de acordo com sua aplicação, mas de acordo com o
+                                <a href="https://csrc.nist.gov/publications/detail/sp/800-132/final" target="_blank">NIST SP800-132</a>, 10 caracteres é o desejável
+                            </li>
+                            <li>
+                                Crie mecanismos de complexidade
+                                <br>Exemplo: ao menos 1 caractere maiúsculo, 1 minúsculo, 1 número e 1 caractere especial
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Armazenamento</h3>
+                        <ul>
+                            <li>Aplique um algoritmo de hash para transformá-la em um texto com tamanho fixo</li>
+                            <li>Utilize um <em>salt</em> específico para aquela senha</li>
+                            <li>Criptografe o hash gerado para garantir que você possa recriptografar todas as senhas caso haja vazamento do banco de dados</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Referências</h3>
+                        <ul>
+                            <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Authentication_Cheat_Sheet.md">OWASP Authentication Cheat Sheet</a></li>
+                            <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md">OWASP Password Storage Cheat Sheet</a></li>
+                            <li><a href="https://crackstation.net/hashing-security.htm" target="_blank">CrackStation: Salted Password Hashing - Doing it Right</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Enumeração de usuários</h2>
+                    </section>
+                    <section>
+                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
+    $user = $this->findByUsername($username);
+    if (! $user) {
+        return false;
+    }
+    if (! $this->verifyPassword($password, $user->getPassword())) {
+        return false;
+    }
+    return true;
+}</code></pre>
+                    </section>
+                    <section>
+                        É possível saber que usuários existem em sua aplicação através de <em>Timing attacks</em>
+                    </section>
+                    <section>
+                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
+    $storedPassword = $this->generateFakePassword();
+    $user = $this->findByUsername($username);
+    if ($user) {
+        $storedPassword = $user->getPassword();
+    }
+    return ($this->verifyPassword($password, $storedPassword))
+        && ($user !== null);
+}</code></pre>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>CSRF</h2>
+                    </section>
+                    <section>
+                        Slide
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Runtime Application Self-Protection</h2>
+                    </section>
+                    <section>
+                        O que aconteceria se alguém alterasse sua aplicação de alguma maneira?
+                    </section>
+                    <section>
+                        <pre><code class="language-php line-numbers">public function bootstrap() : void {
+    // Se não for performático sempre, balanceie as validações
+    if ($this->shouldValidateRASP()) {
+        $this->validatePhpConfig()
+            ->validateDatabaseConfig()
+            ->validateWebServerConfig()
+            ->validateServerConfig();
+    }
+}</code></pre>
+                    </section>
+                </section>
+
+                <section>
+                    <h2>Obrigado!</h2>
+                    <a href="http://vcampitelli.github.io">vcampitelli.github.io</a></li>
+                </section>
+            </div>
+        </div>
+
+        <script src="reveal.js/js/reveal.js"></script>
+        <script>
+            Reveal.initialize({
+                dependencies: [
+                    { src: 'js/prism.js', async: true }
+                ],
+                slideNumber: true,
+                mouseWheel: true,
+                history: true,
+                overview: false
+            });
+        </script>
+    </body>
+</html>

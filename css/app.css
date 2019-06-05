@@ -1,0 +1,52 @@
+pre::-webkit-scrollbar-track {
+	border-radius: 10px;
+	background-color: transparent;
+}
+pre::-webkit-scrollbar {
+	width: 8px;
+	background-color: transparent;
+}
+pre::-webkit-scrollbar-thumb {
+	border-radius: 10px;
+	background-color: #3e3e3e;
+}
+pre {
+	width: 100%;
+	padding-top: .5em !important;
+	padding-bottom: .5em !important;
+}
+pre[class*="language-"].line-numbers > code {
+	overflow: visible;
+}
+.reveal section img {
+	border: 0;
+}
+.reveal pre code {
+  font-size: 0.6em;
+  padding: 0;
+}
+.line-numbers-rows > span {
+	line-height: 1.5;
+}
+.line-numbers .line-numbers-rows {
+	border-right-color: #3d3d3d;
+}
+.line-numbers-rows > span:before {
+	color: #5d5d5d;
+}
+pre[class*="language-"].line-numbers {
+	padding-left: 2em;
+}
+.token.string {
+	color: #ead4a3;
+}
+section > ul > li + li,
+li.margintop {
+	margin-top: 1em;
+}
+.token.string {
+	color: #ead4a3;
+}
+.token.variable {
+	color: #66d9ef;
+}
