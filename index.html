@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="author" content="Vinícius Campitelli">
 
-        <title>Segurança além do óbvio</title>
+        <title>Segurança além do óbvio com PHP</title>
 
         <link rel="stylesheet" href="reveal.js/css/reveal.css">
         <link rel="stylesheet" href="reveal.js/css/theme/night.css">
@@ -38,7 +38,7 @@
 
                 <section>
                     <h2>Agenda</h2>
-                    <ul>
+                    <ul class="no-padding">
                         <li>OWASP Top Ten</li>
                         <li>Gerenciamento de sessão</li>
                         <li>Validação de entradas</li>
@@ -52,7 +52,7 @@
                 <section>
                     <section>
                         <h2>OWASP Top Ten</h2>
-                        <p>Ver página no <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project" target="_blank">owasp.org</a></p>
+                        <p><a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project" target="_blank">owasp.org</a></p>
                     </section>
                     <section>
                         <h3>OWASP Top Ten</h3>
@@ -295,6 +295,10 @@ session.sid_bits_per_character=6</code></pre>
     return ($this->verifyPassword($password, $storedPassword))
         && ($user !== null);
 }</code></pre>
+                    </section>
+                    <section>
+                        Será que não estamos exagerando? É realmente possível ver essa diferença?
+                        <p class="fragment">Vamos testar, então!</p>
                     </section>
                 </section>
 

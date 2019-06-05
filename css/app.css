@@ -1,3 +1,6 @@
+.reveal h1 {
+  font-size: 3.3em;
+}
 pre::-webkit-scrollbar-track {
 	border-radius: 10px;
 	background-color: transparent;
@@ -40,7 +43,7 @@ pre[class*="language-"].line-numbers {
 .token.string {
 	color: #ead4a3;
 }
-section > ul > li + li,
+section > ul:not(.no-padding)  > li + li,
 li.margintop {
 	margin-top: 1em;
 }

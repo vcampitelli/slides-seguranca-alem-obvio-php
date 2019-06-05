@@ -1,9 +1,9 @@
 <?php
 /**
- * Script para testar enumeração de usuários através de timing attacks
+ * Script para se proteger de enumeração de usuários através de timing attacks
  *
- * Uso: php login-user-enumeration.php user pass
- * Benchmark: time for i in $(seq 1 100); do php login-user-enumeration.php user pass; done
+ * Uso: php login-user-enumeration-fixed.php user pass
+ * Benchmark: time for i in $(seq 1 100); do php login-user-enumeration-fixed.php user pass; done
  *
  * @author Vinícius Campitelli
  */
@@ -23,15 +23,18 @@ class UserLogin
 
     public function login(string $username, string $password) : bool
     {
-        // Para facilitar novamente, vamos fazer o método retornar a senha criptografa do usuário
+        $storedPassword = $this->generateFakePassword();
         $userPassword = $this->findByUsername($username);
-        if (! $userPassword) {
-            return false;
+        if ($userPassword) {
+            $storedPassword = $userPassword;
         }
-        if (! $this->verifyPassword($password, $userPassword)) {
-            return false;
-        }
-        return true;
+        return ($this->verifyPassword($password, $storedPassword))
+            && ($userPassword !== null);
+    }
+
+    private function generateFakePassword() : string
+    {
+        return password_hash('0123456789', PASSWORD_ARGON2I);
     }
 
     private function findByUsername(string $username) : ?string
