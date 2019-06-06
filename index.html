@@ -4,6 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="author" content="Vinícius Campitelli">
+        <meta name="description" content="Veremos como aplicar as melhores medidas para protegermos nossos sistemas, trazendo os principais
+ itens do OWASP Top Ten de uma forma mais profunda, indo além dos exemplos mais comuns encontrados, que muitas vezes são resolvidos pelos
+ próprios frameworks. Pontos que serão abordados: enumeração de usuários, CSRF, gerenciamento de sessão, melhores práticas de validação de
+ entradas, runtime application self-protection, armazenamento e políticas de senhas.">
 
         <title>Segurança além do óbvio com PHP</title>
 
@@ -44,7 +48,6 @@
                         <li>Validação de entradas</li>
                         <li>Armazenamento e políticas de senhas</li>
                         <li>Enumeração de usuários</li>
-                        <li>CSRF</li>
                         <li>Runtime Application Self-Protection</li>
                     </ul>
                 </section>
@@ -173,7 +176,7 @@ session.use_trans_sid=Off</code></pre>
                                 </ul>
                             </li>
                             <li>
-                                Mas <strong>sempre</strong> escape a saída
+                                Mas <strong>sempre</strong> trate a saída
                                 <ul>
                                     <li>Se usar uma ferramenta de <em>templating</em>, verifique sua própria função</li>
                                     <li>Senão, use:
@@ -259,7 +262,8 @@ session.use_trans_sid=Off</code></pre>
                         O que um sistema que rode o código a seguir pode dar de informação a um atacante?
                     </section>
                     <section>
-                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
+                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool
+{
     $user = $this->findByUsername($username);
     if (! $user) {
         return false;
@@ -275,7 +279,8 @@ session.use_trans_sid=Off</code></pre>
                         <p class="fragment">É possível saber que usuários existem em sua aplicação através de <em>Timing attacks</em></p>
                     </section>
                     <section>
-                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
+                        <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool
+{
     $storedPassword = $this->generateFakePassword();
     $user = $this->findByUsername($username);
     if ($user) {
@@ -291,15 +296,6 @@ session.use_trans_sid=Off</code></pre>
                             Vamos testar, então!<br><br>
                             <small>Executando os scripts <code>login-user-enumeration.php</code><br>e <code>login-user-enumeration-fixed.php</code></small>
                         </p>
-                    </section>
-                </section>
-
-                <section>
-                    <section>
-                        <h2>CSRF</h2>
-                    </section>
-                    <section>
-                        @TODO
                     </section>
                 </section>
 
@@ -352,6 +348,16 @@ session.use_trans_sid=Off</code></pre>
 }
 </code></pre>
                     </section>
+                </section>
+
+                <section>
+                    <h4 class="fragment">Pontos de atenção</h4>
+                    <ul class="fragment">
+                        <li>Proteger uma aplicação Web não é algo trivial</li>
+                        <li>Existem muitos outros ataques e técnicas de defesas além dessas</li>
+                        <li>Avalie o que faz sentido para seu sistema</li>
+                        <li>Quando possível, utilize técnicas de <a href="https://en.wikipedia.org/wiki/Defense_in_depth_(computing)" target="_blank">defesa em camadas</a></li>
+                    </ul>
                 </section>
 
                 <section>
