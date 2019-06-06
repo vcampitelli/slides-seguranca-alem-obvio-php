@@ -72,15 +72,26 @@
                         <h3>Codificação</h3>
                     </section>
                     <section>
-                        <p>Regerar código da sessão no login e logout da da aplicação</p>
+                        <p>Regere o ID da sessão no login e logout para mitigar <em>Session Fixation</em></p>
                         <pre><code class="language-php line-numbers">if ($user = $this->loginFrom($_POST)) {
     session_start();
     session_regenerate_id(true); // true para apagar a sessão antiga
 }</code></pre>
                     </section>
                     <section>
-                        <p>Por mais que IP e User-Agent possam ser forjados, é uma camada extra de proteção</p>
-                        <pre><code class="language-php line-numbers">protected function check() : bool {
+                        <p>Adicione camadas extras de proteção à sessão</p>
+                        <pre><code class="language-php line-numbers">protected function afterLogin() : void
+{
+    $_SESSION['ip'] = $_SERVER['REMOTE_ADDR'];
+    $_SESSION['ua'] = $_SERVER['HTTP_USER_AGENT'];
+    $_SESSION['timestamp'] = time();
+}</code></pre>
+                        <p class="small">Por mais que IP e User-Agent possam ser forjados, é uma camada extra de proteção</p>
+                        <p class="small"><em>Mas tome cuidado com o IP, pois proxies e ISPs podem fazer com que ele mude constantemente</em></p>
+                    </section>
+                    <section>
+                        <pre><code class="language-php line-numbers">protected function checkSession() : bool
+{
     if ((empty($_SESSION['ip']))
         || (empty($_SESSION['ua']))
         || ($_SESSION['ip'] !== $_SERVER['REMOTE_ADDR'])
@@ -89,84 +100,55 @@
 		return false;
     }
 
+    if (empty($_SESSION['timestamp'])) {
+        session_regenerate_id(true);
+        return false;
+    }
+
+    $time = time();
+    if ($_SESSION['timestamp'] < $time - 300) {
+        session_regenerate_id(true);
+        $_SESSION['timestamp'] = $time;
+    }
+
     return true;
-}
-</code></pre>
+}</code></pre>
                     </section>
                     <section>
                         <h3>Configurações</h3>
                     </section>
                     <section>
-                        <p>Com <a href="https://letsencrypt.org/" target="_blank">Let's Encrypt</a>, podemos ter certificados SSL gratuitos!</p>
-                        <p>Para automatizar o processo, recomendo o <a href="https://github.com/Neilpang/acme.sh">acme.sh</a></p>
+                        Antes de mais nada...
+                        <div class="fragment">
+                            <h3>USE HTTPS!</h3>
+                        </div>
                     </section>
                     <section>
-                        <pre><code class="language-ini">session.name="MYSESSNAME"
+                        <p>Com <a href="https://letsencrypt.org/" target="_blank">Let's Encrypt</a>, podemos ter<br>certificados SSL gratuitos <span style="color: #f75252">&hearts;</span></p>
+                        <br>
+                        <ul>
+                            <li><a href="https://letsencrypt.org/docs/client-options/" target="_blank">Lista de clientes suportados</a></li>
+                            <li>Uso e recomendo o <a href="https://github.com/Neilpang/acme.sh">acme.sh</a></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <pre><code class="language-ini">session.cookie_domain="meusite.com.br"
+session.cookie_httponly=On
+session.cookie_samesite="Strict"
+session.cookie_secure=On
+session.name="MYSESSNAME"
+session.sid_bits_per_character=6
+session.sid_length=48
 session.use_only_cookies=On
 session.use_strict_mode=On
-session.cookie_httponly=On
-session.cookie_secure=On
-session.cookie_domain="example.com"
-session.cookie_samesite="Strict"
-session.use_trans_sid=On
-session.sid_length=48
-session.sid_bits_per_character=6</code></pre>
+session.use_trans_sid=Off</code></pre>
                     </section>
                     <section>
-                        <pre><code class="language-ini">session.name="MYSESSNAME"</code></pre>
-                        session.name specifies the name of the session which is used as cookie name. It should only contain alphanumeric characters. Defaults to PHPSESSID. See also session_name().
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.use_only_cookies=On</code></pre>
-
-                        Although HTTP cookies suffer some problems, cookies remain the preferred way to manage session IDs. Only use cookies for session ID management when it is possible. Most applications should use a cookie for the session ID.
-
-                        If session.use_only_cookies=Off, the session module will use the session ID values set by GET/POST/URL provided the session ID cookie is uninitialized.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.use_strict_mode=On</code></pre>
-
-                        Although, enabling session.use_strict_mode is mandatory for secure sessions. It is disabled by default.
-
-                        This prevents the session module to use an uninitialized session ID. Put differently, the session module only accepts valid session IDs generated by the session module. It rejects any session ID supplied by users.
-
-                        Due to the cookie specification, attackers are capable to place non removable session ID cookies by locally setting a cookie database or JavaScript injections. session.use_strict_mode can prevent an attacker initialized session ID of being used.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.cookie_httponly=On</code></pre>
-
-                        Refuses access to the session cookie from JavaScript. This setting prevents cookies snatched by a JavaScript injection.
-
-                        It is possible to use a session ID as a CSRF token, but this is not recommended. For example, HTML sources may be saved and sent to other users. Developers should not write session IDs in web pages for better security. Almost all applications must use the httponly attribute for the session ID cookie.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.cookie_secure=On</code></pre>
-
-                        Allow access to the session ID cookie only when the protocol is HTTPS. If a website is only accessible via HTTPS, it should enable this setting.
-
-                        HSTS should be considered for websites accessible only via HTTPS.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.cookie_domain = "example.com"</code></pre>
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.cookie_samesite="Lax" or session.cookie_samesite="Strict"</code></pre>
-
-                        As of PHP 7.3 the "SameSite" attribute can be set for the session ID cookie. This attribute is a way to mitigate CSRF (Cross Site Request Forgery) attacks.
-
-                        The difference between Lax and Strict is the accessibility of the cookie in requests originating from another registrable domain employing the HTTP GET method. Cookies using Lax will be accessible in a GET request originated from another registrable domain, whereas cookies using Strict will not.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.use_trans_sid=On</code></pre>
-                        Use of a transparent session ID management is not prohibited. Developers may employ it when it is required. However, disabling transparent session ID management improves the general session ID security by eliminating the possibility of a session ID injection and/or leak.
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.sid_length="48"</code></pre>
-                        (PHP 7.1.0 >=) Longer session IDs results in stronger session IDs. Developers should consider a session ID length of 32 characters or more. At least 26 characters are required when session.sid_bits_per_character="5".
-                    </section>
-                    <section>
-                        <pre><code class="language-ini">session.sid_bits_per_character="6"</code></pre>
-                        (PHP 7.1.0 >=) The more bits there are in a session ID character, the stronger the session ID generated by the session module is for an identical session ID length.
+                        <h3>Referências</h3>
+                        <ul>
+                            <li><a href="https://paragonie.com/blog/2015/04/fast-track-safe-and-secure-php-sessions" target="_blank">Paragon IE - The Fast Track to Safe and Secure PHP Sessions</a></li>
+                            <li><a href="https://www.php.net/manual/en/session.security.ini.php" target="_blank">Manual do PHP - Securing Session INI Settings</a></li>
+                        </ul>
                     </section>
                 </section>
 
@@ -175,7 +157,13 @@ session.sid_bits_per_character=6</code></pre>
                         <h2>Validação de entradas</h2>
                     </section>
                     <section>
-                        <strong>Nunca confie em entradas do usuário!</strong>
+                        <strong>Nunca confie em entradas do usuário!</strong><br><br>
+                        <blockquote class="fragment">
+                            &#8220;Mas eu estou validando no frontend!&#8221;
+                        </blockquote>
+                        <cite class="fragment">
+                            <small>&mdash; Alguém antes de ter sua aplicação invadida</small>
+                        </cite>
                     </section>
                     <section>
                         <ul>
@@ -199,8 +187,10 @@ session.sid_bits_per_character=6</code></pre>
                     </section>
                     <section>
                         <ul>
-                            <li>Valide os dados de entrada de acordo com o que você espera para aquele campo (<em>data type</em>)</li>
-                            <li>Exemplo: um nome de uma pessoa pode ter apenas letras, espaços, números, hífen e apóstrofo <em>(não esqueça dos acentos!)</em></li>
+                            <li>
+                                Valide os dados de entrada de acordo com o que você espera para aquele campo (<em>data type</em>)
+                                <small>Exemplo: um nome de uma pessoa pode ter apenas letras, espaços, números, hífen e apóstrofo <em>(não esqueça dos acentos!)</em></small>
+                            </li>
                         </ul>
                     </section>
                     <section>
@@ -239,12 +229,12 @@ session.sid_bits_per_character=6</code></pre>
                             <li>Não limite os caracteres permitidos</li>
                             <li>Não coloque um tamanho máximo</li>
                             <li>
-                                O tamanho mínimo varia de acordo com sua aplicação, mas de acordo com o
-                                <a href="https://csrc.nist.gov/publications/detail/sp/800-132/final" target="_blank">NIST SP800-132</a>, 10 caracteres é o desejável
+                                O tamanho mínimo pode variar de acordo com as necessidades de sua aplicação<br>
+                                <small>(de acordo com o <a href="https://csrc.nist.gov/publications/detail/sp/800-132/final" target="_blank">NIST SP800-132</a>, 10 caracteres é o desejável)</small>
                             </li>
                             <li>
-                                Crie mecanismos de complexidade
-                                <br>Exemplo: ao menos 1 caractere maiúsculo, 1 minúsculo, 1 número e 1 caractere especial
+                                Crie mecanismos de complexidade<br>
+                                <small>Exemplo: ao menos 1 caractere maiúsculo, 1 minúsculo, 1 número e 1 caractere especial</small>
                             </li>
                         </ul>
                     </section>
@@ -268,7 +258,7 @@ session.sid_bits_per_character=6</code></pre>
 
                 <section>
                     <section>
-                        <h2>Enumeração de usuários</h2>
+                        O que um sistema que rode o código a seguir pode dar de informação a um atacante?
                     </section>
                     <section>
                         <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
@@ -283,7 +273,8 @@ session.sid_bits_per_character=6</code></pre>
 }</code></pre>
                     </section>
                     <section>
-                        É possível saber que usuários existem em sua aplicação através de <em>Timing attacks</em>
+                        <h2>Enumeração de usuários</h2>
+                        <p class="fragment">É possível saber que usuários existem em sua aplicação através de <em>Timing attacks</em></p>
                     </section>
                     <section>
                         <pre><code class="language-php line-numbers">public function login(string $username, string $password) : bool {
@@ -297,8 +288,11 @@ session.sid_bits_per_character=6</code></pre>
 }</code></pre>
                     </section>
                     <section>
-                        Será que não estamos exagerando? É realmente possível ver essa diferença?
-                        <p class="fragment">Vamos testar, então!</p>
+                        <p>Será que não estamos exagerando?<br>É realmente possível ver essa diferença?</p><br>
+                        <p class="fragment">
+                            Vamos testar, então!<br><br>
+                            <small>Executando os scripts <code>login-user-enumeration.php</code><br>e <code>login-user-enumeration-fixed.php</code></small>
+                        </p>
                     </section>
                 </section>
 
@@ -307,7 +301,7 @@ session.sid_bits_per_character=6</code></pre>
                         <h2>CSRF</h2>
                     </section>
                     <section>
-                        Slide
+                        @TODO
                     </section>
                 </section>
 
@@ -319,15 +313,46 @@ session.sid_bits_per_character=6</code></pre>
                         O que aconteceria se alguém alterasse sua aplicação de alguma maneira?
                     </section>
                     <section>
+                        Além de ferramentas de IDS (<em>Intrusion Detection System, como o <a href="https://www.ossec.net/" target="_blank">OSSEC</a>)</em>, podemos colocar lógicas em nossa própria aplicação!
+                    </section>
+                    <section>
                         <pre><code class="language-php line-numbers">public function bootstrap() : void {
     // Se não for performático sempre, balanceie as validações
     if ($this->shouldValidateRASP()) {
-        $this->validatePhpConfig()
+        $this->validateRequest()
+            ->validateFiles()
+            ->validatePhpConfig()
             ->validateDatabaseConfig()
             ->validateWebServerConfig()
             ->validateServerConfig();
     }
 }</code></pre>
+                    </section>
+                    <section>
+                        Por exemplo, você pode garantir que estamos sempre rodando em HTTPS...
+                        <pre><code class="language-php line-numbers">final private function validateRequest() : self {
+    if ((!isset($_SERVER['HTTPS']))
+        || ($_SERVER['HTTPS'] !== 'on')) {
+        throw new RuntimeException('HTTPS only');
+    }
+    return $this;
+}
+</code></pre>
+                    </section>
+                    <section>
+                        ... ou que um arquivo não tenha sido alterado!
+                        <pre><code class="language-php line-numbers">final private function validateFiles() : self {
+    $fingerprint = '/path/to/file.crt';
+    if (! hash_equals(
+        $this->getOriginalFingerprint($file),
+        $this->getCertificateFingerprint($file)
+    )) {
+        $this->alertAuthorities();
+        throw new RuntimeException('O ambiente está comprometido');
+    }
+    return $this;
+}
+</code></pre>
                     </section>
                 </section>
 
@@ -345,7 +370,7 @@ session.sid_bits_per_character=6</code></pre>
                     { src: 'js/prism.js', async: true }
                 ],
                 slideNumber: true,
-                mouseWheel: true,
+                mouseWheel: false,
                 history: true,
                 overview: false
             });
