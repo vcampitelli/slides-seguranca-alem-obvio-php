@@ -90,21 +90,19 @@
                         <p class="small"><em>Mas tome cuidado com o IP, pois proxies e ISPs podem fazer com que ele mude constantemente</em></p>
                     </section>
                     <section>
-                        <pre><code class="language-php line-numbers">protected function checkSession() : bool
+                        <pre><code class="language-php line-numbers">protected function isSessionValid() : bool
 {
     if ((empty($_SESSION['ip']))
         || (empty($_SESSION['ua']))
+        || (empty($_SESSION['timestamp']))
         || ($_SESSION['ip'] !== $_SERVER['REMOTE_ADDR'])
         || ($_SESSION['ua'] !== $_SERVER['HTTP_USER_AGENT'])) {
         session_regenerate_id(true);
+        $_SESSION = [];
 		return false;
     }
 
-    if (empty($_SESSION['timestamp'])) {
-        session_regenerate_id(true);
-        return false;
-    }
-
+    // Opcional: regerar o ID a cada X minutos
     $time = time();
     if ($_SESSION['timestamp'] < $time - 300) {
         session_regenerate_id(true);
