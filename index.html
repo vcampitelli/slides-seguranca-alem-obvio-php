@@ -129,10 +129,11 @@
                         <br>
                         <ul>
                             <li><a href="https://letsencrypt.org/docs/client-options/" target="_blank">Lista de clientes suportados</a></li>
-                            <li>Uso e recomendo o <a href="https://github.com/Neilpang/acme.sh">acme.sh</a></li>
+                            <li>Uso e recomendo o <a href="https://github.com/Neilpang/acme.sh" target="_blank">acme.sh</a></li>
                         </ul>
                     </section>
                     <section>
+                        <h4>Configurações do PHP</h4>
                         <pre><code class="language-ini">session.cookie_domain="meusite.com.br"
 session.cookie_httponly=On
 session.cookie_samesite="Strict"
@@ -169,17 +170,18 @@ session.use_trans_sid=Off</code></pre>
                     <section>
                         <ul>
                             <li>
-                                Utilize uma biblioteca para filtrar as entradas
+                                Você <strong>pode</strong> utilizar filtros de XSS na entrada
                                 <ul>
                                     <li><a href="http://htmlpurifier.org/" target="_blank">HTML Purifier</a></li>
                                     <li><a href="https://github.com/voku/anti-xss" target="_blank">voku/anti-xss</a></li>
                                 </ul>
                             </li>
                             <li>
-                                Mas <strong>sempre</strong> trate a saída
+                                Mas <strong>deve</strong> tratar a saída
                                 <ul>
                                     <li>Se usar uma ferramenta de <em>templating</em>, verifique sua própria função</li>
-                                    <li>Senão, use:
+                                    <li>
+                                        Senão, use a função nativa:
                                         <pre><code class="language-php">htmlentities($str, ENT_QUOTES | ENT_HTML5, $encoding)</code></pre>
                                     </li>
                                 </ul>
@@ -248,11 +250,19 @@ session.use_trans_sid=Off</code></pre>
                         </ul>
                     </section>
                     <section>
+                        <p>Se possível, use a <a href="https://paragonie.com/book/pecl-libsodium" target="_blank">libsodium</a>!</p>
+                        <p>Uma biblioteca segura, moderna e fácil de usar...<br><em class="fragment">(por mais que os métodos sejam um pouco verbosos)</em></p>
+                        <p class="fragment"><br>Sim, estou de olho em você, <code class="small">sodium_crypto_sign_keypair_from_secretkey_and_publickey()</code></p>
+                    </section>
+                    <section>
                         <h3>Referências</h3>
                         <ul>
                             <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Authentication_Cheat_Sheet.md">OWASP Authentication Cheat Sheet</a></li>
                             <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md">OWASP Password Storage Cheat Sheet</a></li>
                             <li><a href="https://crackstation.net/hashing-security.htm" target="_blank">CrackStation: Salted Password Hashing - Doing it Right</a></li>
+                            <li><a href="https://github.com/paragonie/password_lock" target="_blank">paragonie/password_lock</a></li>
+                            <li><a href="/slides-libsodium-php" target="_blank">Slides da minha palestra sobre a libsodium</a></li>
+                            <li><a href="https://en.wikipedia.org/wiki/Rainbow_table" target="_blank">Wikipedia: Rainbow Tables</a></li>
                         </ul>
                     </section>
                 </section>
@@ -296,6 +306,11 @@ session.use_trans_sid=Off</code></pre>
                             Vamos testar, então!<br><br>
                             <small>Executando os scripts <code>login-user-enumeration.php</code><br>e <code>login-user-enumeration-fixed.php</code></small>
                         </p>
+                    </section>
+                    <section>
+                        <video controls>
+                            <source src="scripts/login-user-enumeration.mp4">
+                        </video>
                     </section>
                 </section>
 
@@ -362,7 +377,7 @@ session.use_trans_sid=Off</code></pre>
 
                 <section>
                     <h2>Obrigado!</h2>
-                    <a href="http://vcampitelli.github.io">vcampitelli.github.io</a></li>
+                    <a href="http://vcampitelli.github.io" target="_blank">vcampitelli.github.io</a></li>
                 </section>
             </div>
         </div>
