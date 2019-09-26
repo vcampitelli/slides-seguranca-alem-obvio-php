@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="author" content="Vinícius Campitelli">
-        <meta name="description" content="Veremos como aplicar as melhores medidas para protegermos nossos sistemas, trazendo os principais
- itens do OWASP Top Ten de uma forma mais profunda, indo além dos exemplos mais comuns encontrados, que muitas vezes são resolvidos pelos
- próprios frameworks. Pontos que serão abordados: enumeração de usuários, CSRF, gerenciamento de sessão, melhores práticas de validação de
- entradas, runtime application self-protection, armazenamento e políticas de senhas.">
+        <meta name="description" content="Grande parte dos ataques às aplicações Web se deve ao pouco conhecimento de segurança que a equipe de desenvolvimento responsável possuía.
+Ou, ainda pior, à falsa sensação de que realmente sabemos como criar sistemas seguros. Isso não é algo tão trivial quanto parece e vai muito além de se proteger de SQL e HTML Injection.
+4Veremos então técnicas mais avançadas de defesa, como: proteção à enumeração de usuários, Runtime Application Self-Protection, mitigação de ataques de Rainbow Tables no armazenamento de senhas, entre outros.">
 
-        <title>Segurança além do óbvio com PHP</title>
+        <title>Sistemas seguros em PHP: estou fazendo certo?</title>
 
         <link rel="stylesheet" href="reveal.js/css/reveal.css">
         <link rel="stylesheet" href="reveal.js/css/theme/night.css">
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="css/prism.css">
         <link rel="stylesheet" href="css/app.css">
 
@@ -28,7 +28,8 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h1>Segurança<br>além do óbvio<br>com PHP</h1>
+                    <h1>Sistemas seguros em PHP</h1>
+                    <h2 class="fragment" style="font-family: Lato; font-style: italic">estou fazendo certo?</h2>
                 </section>
 
                 <section>
@@ -48,7 +49,7 @@
                         <li>Validação de entradas</li>
                         <li>Armazenamento e políticas de senhas</li>
                         <li>Enumeração de usuários</li>
-                        <li>Runtime Application Self-Protection</li>
+                        <li>Referências</li>
                     </ul>
                 </section>
 
@@ -79,40 +80,6 @@
                         <pre><code class="language-php line-numbers">if ($user = $this->loginFrom($_POST)) {
     session_start();
     session_regenerate_id(true); // true para apagar a sessão antiga
-}</code></pre>
-                    </section>
-                    <section>
-                        <p>Adicione camadas extras de proteção à sessão</p>
-                        <pre><code class="language-php line-numbers">protected function afterLogin() : void
-{
-    $_SESSION['ip'] = $_SERVER['REMOTE_ADDR'];
-    $_SESSION['ua'] = $_SERVER['HTTP_USER_AGENT'];
-    $_SESSION['timestamp'] = time();
-}</code></pre>
-                        <p class="small">Por mais que IP e User-Agent possam ser forjados, é uma camada extra de proteção</p>
-                        <p class="small"><em>Mas tome cuidado com o IP, pois proxies e ISPs podem fazer com que ele mude constantemente</em></p>
-                    </section>
-                    <section>
-                        <pre><code class="language-php line-numbers">protected function isSessionValid() : bool
-{
-    if ((empty($_SESSION['ip']))
-        || (empty($_SESSION['ua']))
-        || (empty($_SESSION['timestamp']))
-        || ($_SESSION['ip'] !== $_SERVER['REMOTE_ADDR'])
-        || ($_SESSION['ua'] !== $_SERVER['HTTP_USER_AGENT'])) {
-        session_regenerate_id(true);
-        $_SESSION = [];
-		return false;
-    }
-
-    // Opcional: regerar o ID a cada X minutos
-    $time = time();
-    if ($_SESSION['timestamp'] < $time - 300) {
-        session_regenerate_id(true);
-        $_SESSION['timestamp'] = $time;
-    }
-
-    return true;
 }</code></pre>
                     </section>
                     <section>
@@ -316,62 +283,60 @@ session.use_trans_sid=Off</code></pre>
 
                 <section>
                     <section>
-                        <h2>Runtime Application Self-Protection</h2>
+                        <h2>Referências</h2>
                     </section>
                     <section>
-                        O que aconteceria se alguém alterasse sua aplicação de alguma maneira?
+                        <h3>Ferramentas</h3>
+                        <ul>
+                            <li><a href="https://www.metasploit.com/">Metasploit</a></li>
+                            <li><a href="https://w3af.org/">w3af</a></li>
+                            <li><a href="https://portswigger.net/burp">Burp Suite</a></li>
+                            <li><a href="https://pt-br.tenable.com/products/nessus">Nessus</a></li>
+                            <li><a href="http://www.openvas.org/">OpenVAS</a></li>
+                            <li><a href="https://www.kali.org/">Kali Linux</a></li>
+                        </ul>
                     </section>
                     <section>
-                        Além de ferramentas de IDS (<em>Intrusion Detection System, como o <a href="https://www.ossec.net/" target="_blank">OSSEC</a>)</em>, podemos colocar lógicas em nossa própria aplicação!
+                        <h3>Leituras</h3>
+                        <ul>
+                            <li><a href="https://www.owasp.org/">OWASP</a></li>
+                            <li><a href="https://paragonie.com/">Paragon Initiative</a></li>
+                            <li><a href="https://www.devsecops.org/">devsecops.org</a></li>
+                            <li><a href="https://www.bsimm.com/">BSIMM</a></li>
+                            <li><a href="https://pt.slideshare.net/few/basic-of-ssdlc/2">SSDLC</a></li>
+                        </ul>
                     </section>
                     <section>
-                        <pre><code class="language-php line-numbers">public function bootstrap() : void {
-    // Se não for performático sempre, balanceie as validações
-    if ($this->shouldValidateRASP()) {
-        $this->validateRequest()
-            ->validateFiles()
-            ->validatePhpConfig()
-            ->validateDatabaseConfig()
-            ->validateWebServerConfig()
-            ->validateServerConfig();
-    }
-}</code></pre>
+                        <h3>Vulnerabilidades</h3>
+                        <ul>
+                            <li><a href="https://snyk.io/vuln">snyk</a></li>
+                            <li><a href="https://cve.mitre.org/">CVE - Mitre</a></li>
+                            <li><a href="https://www.cvedetails.com/">CVE Details</a></li>
+                        </ul>
                     </section>
                     <section>
-                        Por exemplo, você pode garantir que estamos sempre rodando em HTTPS...
-                        <pre><code class="language-php line-numbers">final private function validateRequest() : self {
-    if ((!isset($_SERVER['HTTPS']))
-        || ($_SERVER['HTTPS'] !== 'on')) {
-        throw new RuntimeException('HTTPS only');
-    }
-    return $this;
-}
-</code></pre>
-                    </section>
-                    <section>
-                        ... ou que um arquivo não tenha sido alterado!
-                        <pre><code class="language-php line-numbers">final private function validateFiles() : self {
-    $fingerprint = '/path/to/file.crt';
-    if (! hash_equals(
-        $this->getOriginalFingerprint($file),
-        $this->getCertificateFingerprint($file)
-    )) {
-        $this->alertAuthorities();
-        throw new RuntimeException('O ambiente está comprometido');
-    }
-    return $this;
-}
-</code></pre>
+                        <h3>Eventos</h3>
+                        <ul style="float: left; width: 40%">
+                            <li><a href="https://roadsec.com.br/">Roadsec</a></li>
+                            <li><a href="https://mindthesec.com.br/">mindthesec</a></li>
+                            <li><a href="https://www.h2hc.com.br/h2hc/pt/">H2HC</a></li>
+                            <li><a href="http://www.securitybsides.com.br/">BSides</a></li>
+                        </ul>
+                        <ul style="float: left;">
+                            <li><a href="http://www.securityleaders.com.br">Security Leaders</a></li>
+                            <li><a href="https://www.ysts.org/">you sh0t the sheriff</a></li>
+                            <li><a href="https://garoa.net.br/wiki/P%C3%A1gina_principal">Garoa Hacker Club</a></li>
+                        </ul>
                     </section>
                 </section>
 
                 <section>
-                    <h4 class="fragment">Pontos de atenção</h4>
+                    <h2>Pontos de atenção</h2>
                     <ul class="fragment">
                         <li>Proteger uma aplicação Web não é algo trivial</li>
                         <li>Existem muitos outros ataques e técnicas de defesas além dessas</li>
                         <li>Avalie o que faz sentido para seu sistema</li>
-                        <li>Quando possível, utilize técnicas de <a href="https://en.wikipedia.org/wiki/Defense_in_depth_(computing)" target="_blank">defesa em camadas</a></li>
+                        <li>Utilize técnicas de <a href="https://en.wikipedia.org/wiki/Defense_in_depth_(computing)" target="_blank">defesa em camadas</a></li>
                     </ul>
                 </section>
 
@@ -389,7 +354,7 @@ session.use_trans_sid=Off</code></pre>
                     { src: 'js/prism.js', async: true }
                 ],
                 slideNumber: true,
-                mouseWheel: true,
+                mouseWheel: false,
                 history: true,
                 overview: false
             });
