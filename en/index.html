@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en-US">
+    <head>
+        <base href="../">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="author" content="Vinícius Campitelli">
+        <meta name="description"
+              content="Several attacks on Web applications occur because of the low knowledge of development security.
+              Or even worse, because of our false feelings of understanding it: we read some articles on the internet
+              (or not even that) and think we can make secure software. Nowadays, we have to be prepared for more
+              complex attacks than SQL and HTML Injection, even though they are still #1 at OWASP Top Ten Project.
+              We will learn how to protect against user enumeration, Runtime Application Self-Protection, correct
+              session management, (really secure) password storage and input validation.">
+
+        <title>Real software security with PHP</title>
+
+        <link rel="stylesheet" href="reveal.js/dist/reveal.css">
+        <link rel="stylesheet" href="reveal.js/dist/theme/league.css">
+        <link rel="stylesheet" href="css/prism.css">
+        <link rel="stylesheet" href="css/app.css">
+    </head>
+    <body class="line-numbers">
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h1>Real software security with PHP</h1>
+                </section>
+
+                <section>
+                    <section data-auto-animate>
+                        <h2>About me</h2>
+                        <div class="d-flex">
+                            <div class="mr-1">
+                                <img src="img/profile.png" alt="Vinícius Campitelli" id="profile-pic">
+                                <h4>Vinícius Campitelli</h4>
+                            </div>
+                            <ul>
+                                <li>
+                                    Member of <a href="https://phpsp.org.br" target="_blank" rel="noopener">PHPSP</a>,
+                                    a PHP group based in Sao Paulo
+                                </li>
+                                <li>
+                                    PHP Developer at <a href="https://ottera.tv" target="_blank" rel="noopener">OTTera</a>
+                                </li>
+                                <li>Cybersecurity enthusiast</li>
+                                <li>10+ years developing with PHP</li>
+                            </ul>
+                        </div>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>About me</h2>
+                        <div class="d-flex one-third-columns">
+                            <div>
+                                <svg role="img" width="64px" height="64px" viewBox="0 0 24 24"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+                                          fill="#eee"></path>
+                                </svg>
+                                <h6>Slides &amp; GitHub</h6>
+                                <a href="https://github.com/vcampitelli" target="_blank" rel="noopener" class="h4">vcampitelli</a>
+                            </div>
+                            <div>
+                                <svg role="img" width="64px" height="64px" viewBox="0 0 24 24"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"
+                                          fill="#eee"></path>
+                                </svg>
+                                <h6>Twitter</h6>
+                                <a href="https://twitter.com/vcampitelli" target="_blank" rel="noopener" class="h4">vcampitelli</a>
+                            </div>
+                            <div>
+                                <svg height="72" viewBox="0 0 72 72" width="72" xmlns="http://www.w3.org/2000/svg">
+                                    <g fill="none" fill-rule="evenodd">
+                                        <path d="M8,72 L64,72 C68.418278,72 72,68.418278 72,64 L72,8 C72,3.581722 68.418278,-8.11624501e-16 64,0 L8,0 C3.581722,8.11624501e-16 -5.41083001e-16,3.581722 0,8 L0,64 C5.41083001e-16,68.418278 3.581722,72 8,72 Z"
+                                              fill="#2b2e31"/>
+                                        <path d="M62,62 L51.315625,62 L51.315625,43.8021149 C51.315625,38.8127542 49.4197917,36.0245323 45.4707031,36.0245323 C41.1746094,36.0245323 38.9300781,38.9261103 38.9300781,43.8021149 L38.9300781,62 L28.6333333,62 L28.6333333,27.3333333 L38.9300781,27.3333333 L38.9300781,32.0029283 C38.9300781,32.0029283 42.0260417,26.2742151 49.3825521,26.2742151 C56.7356771,26.2742151 62,30.7644705 62,40.051212 L62,62 Z M16.349349,22.7940133 C12.8420573,22.7940133 10,19.9296567 10,16.3970067 C10,12.8643566 12.8420573,10 16.349349,10 C19.8566406,10 22.6970052,12.8643566 22.6970052,16.3970067 C22.6970052,19.9296567 19.8566406,22.7940133 16.349349,22.7940133 Z M11.0325521,62 L21.769401,62 L21.769401,27.3333333 L11.0325521,27.3333333 L11.0325521,62 Z"
+                                              fill="#eee"/>
+                                    </g>
+                                </svg>
+                                <h6>LinkedIn</h6>
+                                <a href="https://linkedin.com/in/viniciuscampitelli" target="_blank" rel="noopener" class="h4">Vinícius Campitelli</a>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
+                <section>
+                    <h2>Summary</h2>
+                    <ul class="no-padding">
+                        <li>OWASP Top Ten</li>
+                        <li>Session management</li>
+                        <li>Input validation</li>
+                        <li>Password policy and storage</li>
+                        <li>User enumeration</li>
+                        <li>Runtime application self-protection</li>
+                        <li>References</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <section data-auto-animate>
+                        <h2>OWASP Top Ten</h2>
+                        <p><a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project" target="_blank" rel="noopener">owasp.org</a></p>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>OWASP Top Ten</h2>
+                        <img src="img/owasp-1.png" alt="OWASP Top Ten - Part 1/2">
+                    </section>
+                    <section data-auto-animate>
+                        <h2>OWASP Top Ten</h2>
+                        <img src="img/owasp-2.png" alt="OWASP Top Ten - Part 2/2">
+                    </section>
+                </section>
+
+                <section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Coding</h3>
+                        <p>
+                            Regenerating session ID when logging in and out mitigates
+                            <a href="https://en.wikipedia.org/wiki/Session_fixation" target="_blank" rel="noopener">Session Fixation</a>
+                        </p>
+                        <pre><code class="language-php" data-trim>
+                            if ($user = $this->loginFrom($_POST)) {
+                                session_start();
+                                session_regenerate_id(true);
+                                // ...
+                            }
+                        </code></pre>
+                        <small>Plain PHP</small>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Coding</h3>
+                        <p>
+                            Regenerating session ID when logging in and out mitigates
+                            <a href="https://en.wikipedia.org/wiki/Session_fixation" target="_blank" rel="noopener">Session Fixation</a>
+                        </p>
+                        <pre><code class="language-yaml" data-trim>
+                            # composer require security
+
+                            # config/packages/security.yaml
+                            security:
+                                session_fixation_strategy: migrate # or invalidate
+                        </code></pre>
+                        <p class="mb-0 small">Symfony</p>
+                        <a href="https://symfony.com/doc/current/reference/configuration/security.html#session-fixation-strategy" class="smaller" target="_blank" rel="noopener">
+                            see in docs
+                        </a>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Coding</h3>
+                        <p>
+                            Regenerating session ID when logging in and out mitigates
+                            <a href="https://en.wikipedia.org/wiki/Session_fixation" target="_blank" rel="noopener">Session Fixation</a>
+                        </p>
+                        <pre><code class="language-php" data-trim>
+                            public function authenticate(Request $request)
+                            {
+                                // ...
+                                if (Auth::attempt($credentials)) {
+                                    $request->session()->regenerate();
+                                    // ...
+                                }
+                            }
+                        </code></pre>
+                        <p class="mb-0 small">Laravel</p>
+                        <a href="https://laravel.com/docs/8.x/authentication#authenticating-users" class="smaller" target="_blank" rel="noopener">
+                            see in docs
+                        </a>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Coding</h3>
+                        <p>
+                            Regenerating session ID when logging in and out mitigates
+                            <a href="https://en.wikipedia.org/wiki/Session_fixation" target="_blank" rel="noopener">Session Fixation</a>
+                        </p>
+                        <pre><code class="language-php" data-trim>
+                            public function bootstrapSession(MvcEvent $e)
+                            {
+                                $session = $e->getApplication()
+                                    ->getServiceManager()
+                                    ->get(SessionManager::class);
+                                $session->start();
+                                $session->regenerateId(true);
+                                // ...
+                            }
+                        </code></pre>
+                        <p class="mb-0 small">Laminas</p>
+                        <a href="https://docs.laminas.dev/laminas-session/manager/" class="smaller" target="_blank" rel="noopener">
+                            see in docs
+                        </a>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Configuration</h3>
+                        <p>First and most important of it all...</p>
+                        <div class="fragment">
+                            <h3>USE HTTPS!</h3>
+                        </div>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>Configuration</h3>
+                        <p>
+                            We don't need to pay for SSL certificates anymore.
+                            Thank you, <a href="https://letsencrypt.org/" target="_blank" rel="noopener">Let's Encrypt</a> <span style="color: #f75252">&hearts;</span>
+                        </p>
+                        <br>
+                        <a href="https://letsencrypt.org/docs/client-options/" target="_blank" rel="noopener">List of available clients</a>
+                        <br>
+                        <div class="small">
+                            I personally recommend
+                            <a href="https://certbot.eff.org/" target="_blank" rel="noopener">Certbot</a> or
+                            <a href="https://github.com/Neilpang/acme.sh" target="_blank" rel="noopener">acme.sh</a>
+                        </div>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h4>Configuration</h4>
+                        <pre><code class="language-ini">session.cookie_domain="mydomain.com"
+session.cookie_httponly=On
+session.cookie_samesite="Strict"
+session.cookie_secure=On
+session.name="MYSESSNAME"
+session.sid_bits_per_character=6
+session.sid_length=48
+session.use_only_cookies=On
+session.use_strict_mode=On
+session.use_trans_sid=Off</code></pre>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Session management</h2>
+                        <h3>References</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://paragonie.com/blog/2015/04/fast-track-safe-and-secure-php-sessions" target="_blank" rel="noopener">Paragon IE - The Fast Track to Safe and Secure PHP Sessions</a></li>
+                            <li><a href="https://www.php.net/manual/en/session.security.ini.php" target="_blank" rel="noopener">PHP Manual - Securing Session INI Settings</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section data-auto-animate>
+                        <h2>Input validation</h2>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Input validation</h2>
+                        <strong>NEVER trust user input!</strong><br><br>
+                        <blockquote class="fragment">
+                            &#8220;But I'm already validating everything in the frontend!&#8221;
+                        </blockquote>
+                        <cite class="fragment">
+                            <small>&mdash; Someone before having their app hacked</small>
+                        </cite>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Input validation</h2>
+                        <ul>
+                            <li>
+                                You <strong>can</strong> use XSS filters when storing data
+                                <ul>
+                                    <li><a href="http://htmlpurifier.org/" target="_blank" rel="noopener">HTML Purifier</a></li>
+                                    <li><a href="https://github.com/voku/anti-xss" target="_blank" rel="noopener">voku/anti-xss</a></li>
+                                </ul>
+                            </li>
+                            <li class="fragment">
+                                But you <strong>must</strong> handle when printing it
+                                <ul>
+                                    <li>If you're using a <em>template engine</em>, check their docs</li>
+                                    <li>
+                                        You can always rely on plain PHP
+                                        <pre><code class="language-php no-line-numbers">htmlentities($str, ENT_QUOTES | ENT_HTML5, $encoding)</code></pre>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h4 class="mb-0"><s>Hardcore</s> Robust</h4>
+                        <h2>Input validation</h2>
+                        <ul>
+                            <li>
+                                Validate input data accordingly to what you expect from that field (aka <em>data type</em>)
+                                <small>Example: a person name may only contain letters <em>(don't forget diacritics)</em>, spaces, numbers, hyphens and apostrophe</small>
+                            </li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h4 class="mb-0"><s>Hardcore</s> Robust</h4>
+                        <h2>Input validation</h2>
+                        <ul>
+                            <li>You can create a middleware in your framework to validate every request data before reaching business code</li>
+                            <li>If there's no <em>data type</em> associated to a field, you can remove it from the request</li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h4 class="mb-0"><s>Hardcore</s> Robust</h4>
+                        <h2>Input validation</h2>
+                        <ul>
+                            <li>
+                                And there are two basic approaches:
+                                <ol>
+                                    <li>Sanitize input data and continue processing with the cleansed value; or</li>
+                                    <li class="fragment margintop">
+                                        Stop processing with an <code>HTTP 400 Bad Request</code> <em>(if your application is critical)</em>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>Input validation</h2>
+                        <h3>References</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://phpsecurity.readthedocs.io/en/latest/Cross-Site-Scripting-(XSS).html" target="_blank" rel="noopener">PHP Security: XSS</a></li>
+                            <li><a href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet" target="_blank" rel="noopener">OWASP: XSS Filter Evasion Cheat Sheet</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Password policy and storage</h2>
+                    </section>
+                    <section data-auto-animate>
+                        <h3>Password Policy</h3>
+                        <ul>
+                            <li>Don't disallow special characters <em class="fragment">(but you have to define a valid ASCII range)</em></li>
+                            <li class="fragment">Don't set a maximum length</li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h3>Password Policy</h3>
+                        <ul>
+                            <li>
+                                Minimum length depends on your application and its users<br>
+                                <small>(according to <a href="https://csrc.nist.gov/publications/detail/sp/800-132/final" target="_blank" rel="noopener">NIST SP800-132</a>, 10 characters are desirable)</small>
+                            </li>
+                            <li class="fragment">
+                                Create complexity requirements<br>
+                                <small>Example: at least 1 upper case letter, 1 letter case, 1 number and 1 special character</small>
+                            </li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h3>Password Storage</h3>
+                        <ul>
+                            <li>
+                                We need to hash the password to obtain a fixed-length text
+                                <em class="fragment small">(this is why we don't need to worry about maximum length and special characters)</em>
+                            </li>
+                            <li class="fragment">
+                                Actually, we need to use special kind of function called key derivation, which is more complex and slower than standard hashing functions
+                            </li>
+                        </ul>
+                    </section>
+                    <section data-auto-animate>
+                        <h3>Password Storage</h3>
+                        <ul>
+                            <li>
+                                The most recommended algorithm to use is <a href="https://en.wikipedia.org/wiki/Argon2" target="_blank" rel="noopener">Argon2</a>,
+                                winner of the Password Hashing Competition in 2015
+                            </li>
+                            <li class="fragment">
+                                We can use <code>password_hash()</code> with <code>PASSWORD_ARGON2ID</code> <sup class="small">(PHP 7.3+)</sup> constant
+                            </li>
+                            <li class="fragment">
+                                Or with <a href="https://paragonie.com/book/pecl-libsodium" target="_blank" rel="noopener">libsodium</a>, a modern cryptographic library
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>References</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Authentication_Cheat_Sheet.md">OWASP Authentication Cheat Sheet</a></li>
+                            <li><a href="https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md">OWASP Password Storage Cheat Sheet</a></li>
+                            <li><a href="https://crackstation.net/hashing-security.htm" target="_blank" rel="noopener">CrackStation: Salted Password Hashing - Doing it Right</a></li>
+                            <li><a href="https://github.com/paragonie/password_lock" target="_blank" rel="noopener">paragonie/password_lock</a></li>
+                            <li><a href="https://en.wikipedia.org/wiki/Rainbow_table" target="_blank" rel="noopener">Wikipedia: Rainbow Tables</a></li>
+                            <li><a href="https://viniciuscampitelli.com/slides-libsodium-php" target="_blank" rel="noopener">My slides about libsodium</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        What does this code tells to a possible attacker about our application?
+                    </section>
+                    <section>
+                        <pre><code class="language-php">public function login(string $username, string $password) : bool
+{
+    $user = $this->findByUsername($username);
+    if (! $user) {
+        return false;
+    }
+    return $this->verifyPassword($password, $user->getPassword());
+}</code></pre>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>User enumeration</h2>
+                        <p>Verifying if the provided password matches to the one stored in the database may take some significant time</p>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>User enumeration</h2>
+                        <p>This way, depending on how long the request takes to complete, the attacker can assume whether the specified user exists <em>(Timing attack)</em></p>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>User enumeration</h2>
+                        <p>How do we fix this code then?</p>
+                        <pre data-id="pre"><code class="language-php">public function login(string $username, string $password) : bool
+{
+    $user = $this->findByUsername($username);
+    if (! $user) {
+        return false;
+    }
+    return $this->verifyPassword($password, $user->getPassword());
+}</code></pre>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>User enumeration</h2>
+                        <pre data-id="pre"><code class="language-php">public function login(string $username, string $password) : bool
+{
+    $user = $this->findByUsername($username);
+    $storedPassword = $this->generateFakePassword();
+    if ($user) {
+        $storedPassword = $user->getPassword();
+    }
+    return ($this->verifyPassword($password, $storedPassword))
+        && ($user !== null);
+}</code></pre>
+                    </section>
+                    <section data-auto-animate>
+                        <h2>User enumeration</h2>
+                        <p>Aren't we overreacting?<br>Is this difference really notable?</p><br>
+                        <p class="fragment">
+                            Let's take a look at some code then!<br><br>
+                            <small>By running scripts <code>login-user-enumeration.php</code><br>and <code>login-user-enumeration-fixed.php</code></small>
+                        </p>
+                    </section>
+                    <section>
+                        <video controls>
+                            <source src="scripts/login-user-enumeration.mp4">
+                        </video>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Runtime application self-protection</h2>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>References</h2>
+                    </section>
+                    <section>
+                        <h3>Tools</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://www.metasploit.com/">Metasploit</a></li>
+                            <li><a href="https://w3af.org/">w3af</a></li>
+                            <li><a href="https://portswigger.net/burp">Burp Suite</a></li>
+                            <li><a href="https://pt-br.tenable.com/products/nessus">Nessus</a></li>
+                            <li><a href="http://www.openvas.org/">OpenVAS</a></li>
+                            <li><a href="https://www.kali.org/">Kali Linux</a></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Reading</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://www.owasp.org/">OWASP</a></li>
+                            <li><a href="https://paragonie.com/">Paragon Initiative</a></li>
+                            <li><a href="https://www.devsecops.org/">devsecops.org</a></li>
+                            <li><a href="https://www.bsimm.com/">BSIMM</a></li>
+                            <li><a href="https://pt.slideshare.net/few/basic-of-ssdlc/2">SSDLC</a></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Vulnerabilities</h3>
+                        <ul class="no-padding">
+                            <li><a href="https://snyk.io/vuln">snyk</a></li>
+                            <li><a href="https://cve.mitre.org/">CVE - Mitre</a></li>
+                            <li><a href="https://www.cvedetails.com/">CVE Details</a></li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <h2>Wrapping everything</h2>
+                    <ul>
+                        <li>Protecting a Web application is not that easy</li>
+                        <li class="fragment">There are many other types of attacks and defense techniques</li>
+                        <li class="fragment">You must assess what is best for your current situation</li>
+                        <li class="fragment">
+                            <a href="https://en.wikipedia.org/wiki/Defense_in_depth_(computing)" target="_blank" rel="noopener">Defense in Depth</a>
+                            is a great to way to defend your system
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Thanks!</h2>
+                    <a href="http://vcampitelli.github.io" target="_blank" rel="noopener">vcampitelli.github.io</a></li>
+                </section>
+            </div>
+        </div>
+
+        <script src="reveal.js/dist/reveal.js"></script>
+        <script>
+            Reveal.initialize({
+                dependencies: [
+                    { src: 'js/prism.js', async: true }
+                ],
+                slideNumber: true,
+                mouseWheel: false,
+                history: true,
+                overview: false
+            });
+        </script>
+    </body>
+</html>
