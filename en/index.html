@@ -15,10 +15,10 @@
 
         <title>Real software security with PHP</title>
 
-        <link rel="stylesheet" href="reveal.js/dist/reveal.css">
-        <link rel="stylesheet" href="reveal.js/dist/theme/league.css">
-        <link rel="stylesheet" href="css/prism.css">
-        <link rel="stylesheet" href="css/app.css">
+        <link rel="stylesheet" href="reveal.js/dist/reveal.css?d=202104212100">
+        <link rel="stylesheet" href="reveal.js/dist/theme/league.css?d=202104212100">
+        <link rel="stylesheet" href="css/prism.css?d=202104212100">
+        <link rel="stylesheet" href="css/app.css?d=202104212100">
     </head>
     <body class="line-numbers">
         <div class="reveal">
@@ -109,6 +109,7 @@
                 </section>
 
                 <section>
+                    <section></section>
                     <section data-auto-animate data-transition="fade">
                         <h2>Session management</h2>
                         <h3 class="fragment" data-fragment-index="1">Coding</h3>
@@ -142,7 +143,7 @@
                         <p class="mb-0 small">
                             Symfony
                             <a href="https://symfony.com/doc/current/reference/configuration/security.html#session-fixation-strategy" target="_blank" rel="noopener">
-                                doc &raquo;
+                                docs &raquo;
                             </a>
                         </p>
                     </section>
@@ -165,7 +166,7 @@
                         <p class="mb-0 small">
                             Laravel
                             <a href="https://laravel.com/docs/8.x/authentication#authenticating-users" target="_blank" rel="noopener">
-                                doc &raquo;
+                                docs &raquo;
                             </a>
                         </p>
                     </section>
@@ -188,7 +189,7 @@
                         <p class="mb-0 small">
                             Laminas
                             <a href="https://docs.laminas.dev/laminas-session/manager/" target="_blank" rel="noopener">
-                                doc &raquo;
+                                docs &raquo;
                             </a>
                         </p>
                     </section>
@@ -229,7 +230,7 @@
                             session.use_strict_mode=On
                             session.use_trans_sid=Off
                         </code></pre>
-                        <p class="small">php.ini</p>
+                        <p class="small text-center">php.ini</p>
                     </section>
                     <section data-auto-animate>
                         <h2>Session management</h2>
@@ -242,11 +243,12 @@
                 </section>
 
                 <section>
+                    <section></section>
                     <section data-auto-animate data-transition="fade">
                         <h2>Input validation</h2>
                         <strong class="fragment">NEVER trust user input!</strong><br><br>
-                        <blockquote class="fragment">
-                            &#8220;But I'm already validating everything in the frontend!&#8221;
+                        <blockquote class="fragment ml-0">
+                            &#8220;But I'm already validating everything on the front end!&#8221;
                         </blockquote>
                         <cite class="fragment">
                             <small>&mdash; Someone before having their app hacked</small>
@@ -254,7 +256,7 @@
                     </section>
                     <section data-auto-animate>
                         <h2>Input validation</h2>
-                        <div class="text-left mb-2">
+                        <div class="text-left mb-1">
                             You <strong>can</strong> use XSS filters when storing data
                             <ul>
                                 <li><a href="http://htmlpurifier.org/" target="_blank" rel="noopener">HTML Purifier</a></li>
@@ -317,7 +319,8 @@
                 </section>
 
                 <section>
-                    <section data-auto-animate>
+                    <section></section>
+                    <section data-auto-animate data-transition="fade">
                         <h2>Password Policy</h2>
                         <p class="fragment">
                             Don't disallow special characters <em class="fragment small">(but you have to define a valid ASCII range)</em>
@@ -390,7 +393,10 @@
                     <section data-auto-animate>
                         <h2>User enumeration</h2>
                         <p class="fragment">Verifying if the provided password matches to the one stored in the database may take some significant time</p>
-                        <p class="fragment">This way, depending on how long the request takes to complete, the attacker can assume whether the specified user exists <em>(timing attack)</em></p>
+                        <p class="fragment">
+                            This way, depending on how long the request takes to complete, the attacker can assume whether the specified user exists
+                            <em class="fragment">(aka timing attack)</em>
+                        </p>
                     </section>
                     <section data-auto-animate>
                         <h2>User enumeration</h2>
@@ -421,7 +427,7 @@
                         <h2>User enumeration</h2>
                         <p class="text-center">Aren't we overreacting?<br>Is this difference really notable?</p><br>
                         <p class="fragment text-center">
-                            Let's take a look at some code then!<br><br>
+                            Let's try it then!<br><br>
                             <small>By running scripts <code>login-user-enumeration.php</code><br>and <code>login-user-enumeration-fixed.php</code></small>
                         </p>
                     </section>
@@ -518,11 +524,11 @@
             </div>
         </div>
 
-        <script src="reveal.js/dist/reveal.js"></script>
+        <script src="reveal.js/dist/reveal.js?d=202104212100"></script>
         <script>
             Reveal.initialize({
                 dependencies: [
-                    { src: 'js/prism.js', async: true }
+                    { src: 'js/prism.js?d=202104212100', async: true }
                 ],
                 slideNumber: true,
                 mouseWheel: false,
